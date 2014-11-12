@@ -130,8 +130,8 @@ function initLights() {
 function init() {
     initProgram(
         gl,
-        'resources/lighting/goraud shading/phong-vertex.glsl',
-        'resources/lighting/goraud shading/fragment.glsl',
+        '/resources/lighting/goraud shading/phong-vertex.glsl',
+        '/resources/lighting/goraud shading/fragment.glsl',
         function (vxShader, fgShader) {
             prg = compile_program(gl, vxShader, fgShader);
             gl.useProgram(prg);
