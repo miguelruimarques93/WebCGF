@@ -123,7 +123,7 @@ function initLights() {
 
     gl.uniform4fv(prg.uniforms.uMaterialAmbient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
     gl.uniform4fv(prg.uniforms.uMaterialDiffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-    gl.uniform4fv(prg.uniforms.uMaterialSpecular, [0.0, 0.0, 0.0]);
+    gl.uniform4fv(prg.uniforms.uMaterialSpecular, [0.0, 0.0, 0.0, 1.0]);
     gl.uniform1f(prg.uniforms.uShininess, 10.0);
 }
 
@@ -202,9 +202,9 @@ function display() {
 
     mat4.perspective(pMatrix, 45, gl.canvas.width / gl.canvas.height, 0.1, 10000.0);
 
-    mat4.identity(mvMatrix)
+    mat4.identity(mvMatrix);
+
     mat4.lookAt(mvMatrix, vec3.fromValues(-4, 7, -7), vec3.fromValues(4.0, 0.0, 3.0), vec3.fromValues(0.0, 1.0, 0.0));
-    // mat4.rotate(mvMatrix, mvMatrix, angle * Math.PI / 180, vec3.fromValues(0, 1, 0));
 
     mat4.translate(mvMatrix, mvMatrix, vec3.fromValues(4, 0, 3));
 
