@@ -12,6 +12,9 @@ var unitCubeNormalsBuffer;
 
 var angle = 0;
 
+var camera = new PerspectiveCamera(0.4, 0.1, 500, vec3.fromValues(0, 0, 0), vec3.fromValues(3, 0, 4));
+var controls = new Controls(camera);
+
 function initBuffers() {
     var vertices = [
         // Front face
@@ -165,8 +168,11 @@ function popMatrix(mat) {
     mat4.copy(mat, clone);
 }
 
+var variable = false;
+
 function drawUnitCube() {
     gl.uniformMatrix4fv(prg.uniforms.uMVMatrix, false, mvMatrix);
+    pMatrix = camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
     gl.uniformMatrix4fv(prg.uniforms.uPMatrix, false, pMatrix);
 
     mat4.copy(nMatrix, mvMatrix);
@@ -204,7 +210,8 @@ function display() {
 
     mat4.identity(mvMatrix);
 
-    mat4.lookAt(mvMatrix, vec3.fromValues(-4, 7, -7), vec3.fromValues(4.0, 0.0, 3.0), vec3.fromValues(0.0, 1.0, 0.0));
+    var viewMatrix = camera.getViewMatrix();
+    mat4.multiply(mvMatrix, viewMatrix, mvMatrix);
 
     mat4.translate(mvMatrix, mvMatrix, vec3.fromValues(4, 0, 3));
 
@@ -246,6 +253,10 @@ function display() {
     }
 }
 
+function update() {
+    animate();
+}
+
 var lastTime = 0;
 
 function animate() {
@@ -263,14 +274,21 @@ function main() {
     if (!gl) return;
 
     init();
-    $('body').append(gl.canvas);
+    var canvas = $(gl.canvas);
+    canvas.mousemove(function (ev) { controls.processMouseMove(ev); } );
+    canvas.mousedown(function (ev) { controls.processMouseDown(ev); } );
+    canvas.mouseup(function (ev) { controls.processMouseUp(ev); } );
+
+    $('body').on('contextmenu', 'canvas', function(e){e.preventDefault(); });
+    $('body').append(canvas);
     $(window).resize(windowResizeHandler);
+
     windowResizeHandler();
 
     function renderLoop() {
         requestAnimationFrame(renderLoop, gl.canvas);
+        update();
         display();
-        animate();
     }
 
     renderLoop();
