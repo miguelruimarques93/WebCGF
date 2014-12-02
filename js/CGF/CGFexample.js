@@ -1,23 +1,7 @@
-var MyScene = Class.create(CGFscene, {
-    init: function (application) {
-        var gl = application.gl;
+var UnitCube = Class.create({
+    initialize: function (gl) {
         this.gl = gl;
-        this.shader = new CGFshader(
-            gl,
-            '/resources/lighting/goraud shading/phong-vertex.glsl',
-            '/resources/lighting/goraud shading/fragment.glsl'
-        );
-
-        this.initLights();
-
         this.initBuffers();
-
-        this.initCameras();
-
-        gl.clearColor(0.3, 0.3, 0.3, 1.0);
-        gl.clearDepth(100.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
     },
 
     initBuffers: function () {
@@ -123,6 +107,101 @@ var MyScene = Class.create(CGFscene, {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     },
 
+    display: function (shader, mvMatrix) {
+        var gl = this.gl;
+
+        var nMatrix = mat4.create();
+        mat4.copy(nMatrix, mvMatrix);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+
+        gl.uniformMatrix4fv(shader.uniforms.uMVMatrix, false, mvMatrix);
+        gl.uniformMatrix4fv(shader.uniforms.uNMatrix, false, nMatrix);
+
+        gl.enableVertexAttribArray(shader.attributes.aVertexPosition);
+        gl.enableVertexAttribArray(shader.attributes.aVertexNormal);
+
+        //2. bind buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.unitCubeVerticesBuffer);
+        gl.vertexAttribPointer(shader.attributes.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.unitCubeNormalsBuffer);
+        gl.vertexAttribPointer(shader.attributes.aVertexNormal, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.unitCubeIndicesBuffer);
+        gl.drawElements(gl.TRIANGLES, this.unitCubeIndicesBuffer.numValues, gl.UNSIGNED_SHORT, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+});
+
+var MyTable = Class.create({
+    initialize: function (gl) {
+        this.gl = gl;
+        this.unitCube = new UnitCube(gl);
+    },
+
+    display: function (shader, mvMatrix) {
+        mat4.translate(mvMatrix, mvMatrix, vec3.fromValues(4, 0, 3));
+
+        var floorModelViewMatrix = mat4.create();
+
+        mat4.translate(floorModelViewMatrix, mvMatrix, vec3.fromValues(0, 0.05, 0));
+        mat4.scale(floorModelViewMatrix, floorModelViewMatrix, vec3.fromValues(8, 0.1, 6));
+
+        this.unitCube.display(shader, floorModelViewMatrix);
+
+        var TopModelViewMatrix = mat4.create();
+
+        mat4.translate(TopModelViewMatrix, mvMatrix, vec3.fromValues(0, 3.7, 0));
+        mat4.scale(TopModelViewMatrix, TopModelViewMatrix, vec3.fromValues(5, 0.3, 3));
+
+        this.unitCube.display(shader, TopModelViewMatrix);
+
+        var legsModelViewMatrix = mat4.translate(mat4.create(), mvMatrix, vec3.fromValues(0, 1.8, 0));;
+
+        var legs = [
+            vec3.fromValues( 2.2, 0,  1.2),
+            vec3.fromValues( 2.2, 0, -1.2),
+            vec3.fromValues(-2.2, 0,  1.2),
+            vec3.fromValues(-2.2, 0, -1.2)
+        ];
+
+        for (var i = 0; i < legs.length; ++i) {
+            var thisLegModelViewMatrix = mat4.copy(mat4.create(), legsModelViewMatrix);
+
+            mat4.translate(thisLegModelViewMatrix, thisLegModelViewMatrix, legs[i]);
+            mat4.scale(thisLegModelViewMatrix, thisLegModelViewMatrix, vec3.fromValues(0.3, 3.5, 0.3));
+
+            this.unitCube.display(shader, thisLegModelViewMatrix);
+        }
+
+    }
+});
+
+var MyScene = Class.create(CGFscene, {
+    init: function (application) {
+        var gl = application.gl;
+        this.gl = gl;
+        this.shader = new CGFshader(
+            gl,
+            '/resources/lighting/goraud shading/phong-vertex.glsl',
+            '/resources/lighting/goraud shading/fragment.glsl'
+        );
+
+        this.initLights();
+
+        this.initCameras();
+
+        this.table = new MyTable(gl);
+
+        gl.clearColor(0.3, 0.3, 0.3, 1.0);
+        gl.clearDepth(100.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+    },
+
     initLights: function () {
         var gl = this.gl;
 
@@ -142,7 +221,7 @@ var MyScene = Class.create(CGFscene, {
     },
 
     initCameras: function () {
-        this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(2, 2, 2), vec3.fromValues(0, 0, 0));
+        this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(25, 15, 25), vec3.fromValues(4, 0, 3));
     },
 
     display: function (gl) {
@@ -159,40 +238,11 @@ var MyScene = Class.create(CGFscene, {
 
         gl.uniformMatrix4fv(this.shader.uniforms.uPMatrix, false, pMatrix);
 
-        this.drawUnitCube(mvMatrix);
+        this.table.display(this.shader, mvMatrix);
 
         this.shader.unbind();
 
-    },
-
-    drawUnitCube: function (mvMatrix) {
-        var gl = this.gl;
-
-        var nMatrix = mat4.create();
-        mat4.copy(nMatrix, mvMatrix);
-        mat4.invert(nMatrix, nMatrix);
-        mat4.transpose(nMatrix, nMatrix);
-
-        gl.uniformMatrix4fv(this.shader.uniforms.uMVMatrix, false, mvMatrix);
-        gl.uniformMatrix4fv(this.shader.uniforms.uNMatrix, false, nMatrix);
-
-        gl.enableVertexAttribArray(this.shader.attributes.aVertexPosition);
-        gl.enableVertexAttribArray(this.shader.attributes.aVertexNormal);
-
-        //2. bind buffers
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.unitCubeVerticesBuffer);
-        gl.vertexAttribPointer(this.shader.attributes.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.unitCubeNormalsBuffer);
-        gl.vertexAttribPointer(this.shader.attributes.aVertexNormal, 3, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.unitCubeIndicesBuffer);
-        gl.drawElements(gl.TRIANGLES, this.unitCubeIndicesBuffer.numValues, gl.UNSIGNED_SHORT, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
-
 });
 
 
