@@ -29,8 +29,8 @@ var CGFinterface = Class.create({
             var displacement = vec2.subtract(vec2.create(), this.mouse, this.prevMouse);
 
             if (this.mouseButtons[0]) { // pressing Left
-                this.activeCamera.rotate(CGFcameraAxis.X, displacement[1] * 0.05);
-                this.activeCamera.rotate(CGFcameraAxis.Y, -displacement[0] * 0.05);
+                this.activeCamera.rotate(CGFcameraAxis.X, displacement[1] * 0.5 * Math.PI / 180.0);
+                this.activeCamera.rotate(CGFcameraAxis.Y, -displacement[0] * 0.5 * Math.PI / 180.0);
             } else if (this.mouseButtons[2]) { // pressing Right
                 this.activeCamera.translate([-displacement[0] * 0.05, -displacement[1] * 0.05, 0]);
             } else if (this.mouseButtons[1]) { // pressing middle

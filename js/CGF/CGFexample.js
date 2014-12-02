@@ -1,4 +1,3 @@
-
 var MyScene = Class.create(CGFscene, {
     init: function (application) {
         var gl = application.gl;
@@ -26,86 +25,85 @@ var MyScene = Class.create(CGFscene, {
 
         var vertices = [
             // Front face
-            -0.5, -0.5,  0.5,
-            0.5, -0.5,  0.5,
-            0.5,  0.5,  0.5,
-            -0.5,  0.5,  0.5,
+            -0.5, -0.5, 0.5,
+            0.5, -0.5, 0.5,
+            0.5, 0.5, 0.5,
+            -0.5, 0.5, 0.5,
 
             // Back face
             -0.5, -0.5, -0.5,
             0.5, -0.5, -0.5,
-            0.5,  0.5, -0.5,
-            -0.5,  0.5, -0.5,
+            0.5, 0.5, -0.5,
+            -0.5, 0.5, -0.5,
 
             // Top face
-            -0.5,  0.5, -0.5,
-            -0.5,  0.5,  0.5,
-            0.5,  0.5,  0.5,
-            0.5,  0.5, -0.5,
+            -0.5, 0.5, -0.5,
+            -0.5, 0.5, 0.5,
+            0.5, 0.5, 0.5,
+            0.5, 0.5, -0.5,
 
             // Bottom face
             -0.5, -0.5, -0.5,
             0.5, -0.5, -0.5,
-            0.5, -0.5,  0.5,
-            -0.5, -0.5,  0.5,
+            0.5, -0.5, 0.5,
+            -0.5, -0.5, 0.5,
 
             // Right face
             0.5, -0.5, -0.5,
-            0.5,  0.5, -0.5,
-            0.5,  0.5,  0.5,
-            0.5, -0.5,  0.5,
+            0.5, 0.5, -0.5,
+            0.5, 0.5, 0.5,
+            0.5, -0.5, 0.5,
 
             // Left face
             -0.5, -0.5, -0.5,
-            -0.5, -0.5,  0.5,
-            -0.5,  0.5,  0.5,
-            -0.5,  0.5, -0.5
+            -0.5, -0.5, 0.5,
+            -0.5, 0.5, 0.5,
+            -0.5, 0.5, -0.5
         ];
         var indices = [
-            0,  1,  2,      0,  2,  3,    // front
-            4,  5,  6,      4,  6,  7,    // back
-            8,  9,  10,     8,  10, 11,   // top
-            12, 13, 14,     12, 14, 15,   // bottom
-            16, 17, 18,     16, 18, 19,   // right
-            20, 21, 22,     20, 22, 23    // left
+            0, 1, 2, 0, 2, 3,    // front
+            4, 5, 6, 4, 6, 7,    // back
+            8, 9, 10, 8, 10, 11,   // top
+            12, 13, 14, 12, 14, 15,   // bottom
+            16, 17, 18, 16, 18, 19,   // right
+            20, 21, 22, 20, 22, 23    // left
         ];
-
         var normals = [
             // Front face
-            0.0,  0.0,  1.0,
-            0.0,  0.0,  1.0,
-            0.0,  0.0,  1.0,
-            0.0,  0.0,  1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
 
             // Back face
-            0.0,  0.0,  -1.0,
-            0.0,  0.0,  -1.0,
-            0.0,  0.0,  -1.0,
-            0.0,  0.0,  -1.0,
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
 
             // Top face
-            0.0,  1.0,   0.0,
-            0.0,  1.0,   0.0,
-            0.0,  1.0,   0.0,
-            0.0,  1.0,   0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
 
             // Bottom face
-            0.0, -1.0,   0.0,
-            0.0, -1.0,   0.0,
-            0.0, -1.0,   0.0,
-            0.0, -1.0,   0.0,
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
 
             // Right face
-            1.0,  0.0,   0.0,
-            1.0,  0.0,   0.0,
-            1.0,  0.0,   0.0,
-            1.0,  0.0,   0.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
 
             // Left face
-            -1.0,  0.0,   0.0,
-            -1.0,  0.0,   0.0,
-            -1.0,  0.0,   0.0,
-            -1.0,  0.0,   0.0
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0
         ];
 
         this.unitCubeVerticesBuffer = gl.createBuffer();
@@ -153,7 +151,7 @@ var MyScene = Class.create(CGFscene, {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        var pMatrix = mat4.perspective(mat4.create(), 45, gl.canvas.width / gl.canvas.height, 0.1, 10000.0);// this.camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
+        var pMatrix = this.camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
 
         var mvMatrix = this.camera.getViewMatrix();
 
@@ -198,19 +196,19 @@ var MyScene = Class.create(CGFscene, {
 });
 
 
-    var body = $(document.body);
+var body = $(document.body);
 
-    var app = new CGFapplication(body);
-    var scene = new MyScene();
+var app = new CGFapplication(body);
+var scene = new MyScene();
 
-    var iface = new CGFinterface();
+var iface = new CGFinterface();
 
-    app.init();
+app.init();
 
-    app.setScene(scene);
-    app.setInterface(iface);
+app.setScene(scene);
+app.setInterface(iface);
 
-    iface.setActiveCamera(scene.camera);
+iface.setActiveCamera(scene.camera);
 
-    app.run();
+app.run();
 

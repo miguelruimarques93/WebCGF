@@ -1,7 +1,7 @@
 var CGFapplication = Class.create({
 
     initialize: function (element) {
-        jQuery.ajaxSetup({async:false});
+        jQuery.ajaxSetup({async: false});
 
         this.element = element;
         this.initialized = false;
@@ -18,7 +18,7 @@ var CGFapplication = Class.create({
         }
 
         var canvas = document.createElement('canvas');
-        gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        gl = canvas.getContext("webgl", {antialias: true}) || canvas.getContext("experimental-webgl", {antialias: true});
 
         if (!gl) {
             Detector.addGetWebGLMessage({parent: this.element});
@@ -28,12 +28,28 @@ var CGFapplication = Class.create({
         this.gl = gl;
         this.initialized = true;
 
-        this.element.appendChild(canvas);
+        this.element.appendChild(this.gl.canvas);
 
         this.initScene();
         this.initInterface();
 
+        jQuery(window).resize(this.resizeCanvas);
+        this.resizeCanvas();
+
         return true;
+    },
+
+    resizeCanvas: function () {
+        if (!this.gl) return;
+
+        var width = this.gl.canvas.clientWidth;
+        var height = this.gl.canvas.clientHeight;
+        if (this.gl.canvas.width != width ||
+            this.gl.canvas.height != height) {
+            // Change the size of the canvas to match the size it's being displayed
+            this.gl.canvas.width = width;
+            this.gl.canvas.height = height;
+        }
     },
 
     update: function () {
