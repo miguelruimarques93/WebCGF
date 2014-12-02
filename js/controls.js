@@ -5,38 +5,6 @@ function Controls(activeCamera) {
     this.activeCamera = activeCamera;
 }
 
-/*
- void Framework::Interface::ProcessMouseMoved(int x, int y, int modifiers)
- {
- if (!_app) return;
-
- boost::shared_ptr<Framework::Scene> scene = _app->GetScene();
- if (!scene) return;
-
- gl::CameraPtr cam = scene->GetActiveCamera();
- if (!cam) return;
-
- int displacementX = Mouse.Position.x - Mouse.PrevPosition.x;
- int displacementY = Mouse.Position.y - Mouse.PrevPosition.y;
-
- if(Mouse.PressingLeft && modifiers==0)
- {
- cam->Rotate(-displacementY*MOUSE_ROTATE_FACTOR, glm::vec3(1.0f, 0.0f, 0.0f));
- cam->Rotate(-displacementX*MOUSE_ROTATE_FACTOR, glm::vec3(0.0f, 1.0f, 0.0f));
- }
- else if(Mouse.PressingRight && modifiers==0)
- {
- cam->Translate(glm::vec3(-displacementX*MOUSE_PAN_FACTOR, -displacementY*MOUSE_PAN_FACTOR, 0.0f));
- }
- else if(Mouse.PressingMiddle || (Mouse.PressingLeft && modifiers & GLUT_ACTIVE_CTRL))
- {
- cam->Translate(glm::vec3(0.0f, 0.0f, displacementY*MOUSE_ZOOM_FACTOR));
- }
-
- glutPostRedisplay();
- }
- */
-
 Controls.prototype.processMouse = function () {
     if (this.activeCamera) {
         var displacement = vec2.subtract(vec2.create(), this.mouse, this.prevMouse);
