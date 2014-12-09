@@ -5,7 +5,7 @@
  * @param value
  */
 function setProperty(object, prop, value) {
-    var fields = prop.split('.');
+    var fields = prop.split(/[\.\[\]]/).filter(function(elem) { return elem.length > 0; })
     var tempObj = object;
     for (var i = 0; i < fields.length - 1; ++i) {
         if (tempObj[fields[i]] === undefined) {

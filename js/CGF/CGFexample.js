@@ -186,7 +186,7 @@ var MyScene = Class.create(CGFscene, {
         this.gl = gl;
         this.shader = new CGFshader(
             gl,
-            '/resources/lighting/goraud shading/phong-vertex.glsl',
+            '/resources/lighting/goraud shading/multiple_light-phong-vertex.glsl',
             '/resources/lighting/goraud shading/fragment.glsl'
         );
 
@@ -207,15 +207,16 @@ var MyScene = Class.create(CGFscene, {
 
         this.shader.bind();
 
-        gl.uniform3fv(this.shader.uniforms.uLightDirection, [-1, -1, -1]);
-        gl.uniform4fv(this.shader.uniforms.uLightAmbient, [0.3, 0.3, 0.3, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLightDiffuse, [1.0, 1.0, 1.0, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLightSpecular, [1.0, 1.0, 1.0, 1.0]);
+        gl.uniform1i(this.shader.uniforms.uLight[0].enabled, true);
+        gl.uniform4fv(this.shader.uniforms.uLight[0].position, [-1, -1, -1, 0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.3, 0.3, 0.3, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[0].diffuse, [0.5, 0.5, 0.5, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[0].specular, [0.5, 0.5, 0.5, 1.0]);
 
-        gl.uniform4fv(this.shader.uniforms.uMaterialAmbient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uMaterialDiffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uMaterialSpecular, [0.0, 0.0, 0.0, 1.0]);
-        gl.uniform1f(this.shader.uniforms.uShininess, 10.0);
+        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 1.0, 1.0]);
+        gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
 
         this.shader.unbind();
     },
@@ -244,7 +245,6 @@ var MyScene = Class.create(CGFscene, {
 
     }
 });
-
 
 var body = $(document.body);
 
