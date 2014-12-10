@@ -6,6 +6,7 @@ struct lightProperties {
     vec4 ambient;                   // Default: (0, 0, 0, 1)
     vec4 diffuse;                   // Default: (0, 0, 0, 1)
     vec4 specular;                  // Default: (0, 0, 0, 1)
+    vec4 half_vector;
     vec3 spot_direction;            // Default: (0, 0, -1)
     float spot_exponent;            // Default: 0 (possible values [0, 128]
     float spot_cutoff;              // Default: 180 (possible values [0, 90] or 180)
@@ -41,33 +42,65 @@ uniform materialProperties uBackMaterial;
 
 varying vec4 vFinalColor;
 
+vec4 calcDirectionLight(int i, vec3 E, vec3 L, vec3 N) {
+    float lambertTerm = dot(N, -L);
+
+    vec4 Ia = uLight[i].ambient * uFrontMaterial.ambient;
+
+    vec4 Id = vec4(0.0, 0.0, 0.0, 0.0);
+
+    vec4 Is = vec4(0.0, 0.0, 0.0, 0.0);
+
+    if (lambertTerm > 0.0) {
+        Id = uLight[i].diffuse * uFrontMaterial.diffuse * lambertTerm;
+
+        vec3 R = reflect(L, N);
+        float specular = pow( max( dot(R, E), 0.0 ), uFrontMaterial.shininess);
+
+        Is = uLight[i].specular * uFrontMaterial.specular * specular;
+    }
+    return Ia + Id + Is;
+}
+
+vec4 calcPointLight(int i, vec3 E, vec3 N) {
+    vec3 direction = (uMVMatrix * vec4(aVertexPosition, 1.0)).xyz - uLight[i].position.xyz;
+    float dist = length(direction);
+    direction = normalize(direction);
+
+    vec4 color = calcDirectionLight(i, E, direction, N);
+    float att = 1.0 / (uLight[i].constant_attenuation + uLight[i].linear_attenuation * dist + uLight[i].quadratic_attenuation * dist * dist);
+    return color * att;
+}
+
+vec4 calcSpotLight(int i, vec3 E, vec3 N)
+{
+    vec3 direction = normalize((uMVMatrix * vec4(aVertexPosition, 1.0)).xyz - uLight[i].position.xyz);
+    float spot_factor = dot(direction, uLight[i].spot_direction);
+
+    if (spot_factor > uLight[i].spot_cutoff) {
+        vec4 color = calcPointLight(i, E, N);
+        return color * (1.0 - (1.0 - spot_factor) * 1.0/(1.0 - uLight[i].spot_cutoff));
+    }
+    else {
+        return vec4(0,0,0,0);
+    }
+}
+
 vec4 lighting(vec4 vertex, vec3 E, vec3 N) {
 
-    vec4 result;
+    vec4 result = vec4(0.0, 0.0, 0.0, 0.0);
 
     for (int i = 0; i < NUMBER_OF_LIGHTS; i++) {
         if (uLight[i].enabled) {
-            // Normalize light to calculate lambertTerm
-            vec3 L = normalize(uLight[i].position.xyz); // Should be uLight.direction (Assumes uLight.position.w = 0) TODO Implement
-
-            // Lambert's cosine law
-            float lambertTerm = dot(N, -L);
-
-            vec4 Ia = uLight[i].ambient * uFrontMaterial.ambient;
-
-            vec4 Id = vec4(0.0, 0.0, 0.0, 1.0);
-
-            vec4 Is = vec4(0.0, 0.0, 0.0, 1.0);
-
-            if (lambertTerm > 0.0) {
-                Id = uLight[i].diffuse * uFrontMaterial.diffuse * lambertTerm;
-
-                vec3 R = reflect(L, N);
-                float specular = pow( max( dot(R, E), 0.0 ), uFrontMaterial.shininess);
-
-                Is = uLight[i].specular * uFrontMaterial.specular * specular;
+            if (uLight[i].position.w == 0.0) {
+                // Directional Light
+                result += calcDirectionLight(i, E, normalize(uLight[i].position.xyz), N);
+            } else if (uLight[i].spot_cutoff == 180.0) {
+                // Point Light
+                result += calcPointLight(i, E, N);
+            } else {
+                result += calcSpotLight(i, E, N);
             }
-            result += Ia + Id + Is;
         }
     }
 
