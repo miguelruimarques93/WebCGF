@@ -208,15 +208,51 @@ var MyScene = Class.create(CGFscene, {
         this.shader.bind();
 
         gl.uniform1i(this.shader.uniforms.uLight[0].enabled, true);
-        gl.uniform4fv(this.shader.uniforms.uLight[0].position, [-1, -1, -1, 0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[0].position, [0.2, -5.0, 0.2, 1]);
         gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.3, 0.3, 0.3, 1.0]);
         gl.uniform4fv(this.shader.uniforms.uLight[0].diffuse, [0.5, 0.5, 0.5, 1.0]);
         gl.uniform4fv(this.shader.uniforms.uLight[0].specular, [0.5, 0.5, 0.5, 1.0]);
+        gl.uniform3fv(this.shader.uniforms.uLight[0].spot_direction, [0, 0, -1]);
+        gl.uniform1f(this.shader.uniforms.uLight[0].spot_exponent, 0);
+        gl.uniform1f(this.shader.uniforms.uLight[0].spot_cutoff, 180);
+        gl.uniform1f(this.shader.uniforms.uLight[0].constant_attenuation, 1.0);
+        gl.uniform1f(this.shader.uniforms.uLight[0].linear_attenuation, 0);
+        gl.uniform1f(this.shader.uniforms.uLight[0].quadratic_attenuation, 0);
+
+        gl.uniform1i(this.shader.uniforms.uLight[1].enabled, true);
+        gl.uniform4fv(this.shader.uniforms.uLight[1].position, [4, 10, 3, 1]);
+        gl.uniform4fv(this.shader.uniforms.uLight[1].ambient, [0.0, 0.0, 0.0, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[1].diffuse, [0.8, 0.0, 0.0, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLight[1].specular, [0.8, 0.0, 0.0, 1.0]);
+        gl.uniform3fv(this.shader.uniforms.uLight[1].spot_direction, [0, -1, 0]);
+        gl.uniform1f(this.shader.uniforms.uLight[1].spot_exponent, 0);
+        gl.uniform1f(this.shader.uniforms.uLight[1].spot_cutoff, 180);
+        gl.uniform1f(this.shader.uniforms.uLight[1].constant_attenuation, 1.0);
+        gl.uniform1f(this.shader.uniforms.uLight[1].linear_attenuation, 0.0);
+        gl.uniform1f(this.shader.uniforms.uLight[1].quadratic_attenuation, 0);
+
+        for (var i = 2; i < 4; ++i) {
+            gl.uniform1i(this.shader.uniforms.uLight[i].enabled, false);
+        }
 
         gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
         gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 1.0, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
         gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
+
+        /*
+
+        gl.uniform3fv(this.shader.uniforms.uLightDirection, [-1, -1, -1]);
+        gl.uniform4fv(this.shader.uniforms.uLightAmbient, [0.3, 0.3, 0.3, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLightDiffuse, [0.5, 0.5, 0.5, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uLightSpecular, [0.5, 0.5, 0.5, 1.0]);
+
+        gl.uniform4fv(this.shader.uniforms.uMaterialAmbient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uMaterialDiffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+        gl.uniform4fv(this.shader.uniforms.uMaterialSpecular, [0.0, 0.0, 0.0, 1.0]);
+        gl.uniform1f(this.shader.uniforms.uShininess, 10.0);
+
+        */
 
         this.shader.unbind();
     },
