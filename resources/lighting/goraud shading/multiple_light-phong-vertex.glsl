@@ -104,6 +104,10 @@ vec4 lighting(vec4 vertex, vec3 E, vec3 N) {
         }
     }
 
+    if (result.r > 1.0) result.r = 1.0;
+    if (result.g > 1.0) result.g = 1.0;
+    if (result.b > 1.0) result.b = 1.0;
+
     result.a = 1.0;
     return result;
 }

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ *
+ * @param object
+ * @param prop
+ * @param value
+ */
+function setProperty(object, prop, value) {
+    var fields = prop.split('.');
+    var tempObj = object;
+    for (var i = 0; i &lt; fields.length - 1; ++i) {
+        if (tempObj[fields[i]] === undefined) {
+            tempObj[fields[i]] = {};
+        }
+        tempObj = tempObj[fields[i]];
+    }
+    tempObj[fields[fields.length - 1]] = value;
+}
+
+/**
+ *
+ * @param gl: WebGL Context
+ * @param vertexShader
+ * @param fragmentShader
+ */
+function compile_program(gl, vertexShader, fragmentShader) {
+    var prg = gl.createProgram();
+    gl.attachShader(prg, vertexShader);
+    gl.attachShader(prg, fragmentShader);
+    gl.linkProgram(prg);
+
+    if (!gl.getProgramParameter(prg, gl.LINK_STATUS)) {
+        console.log(gl.getProgramInfoLog(prg));
+        alert('Could not initialise shaders');
+    }
+
+    gl.useProgram(prg);
+
+    prg.uniforms = {};
+
+    var numUniforms = gl.getProgramParameter(prg, gl.ACTIVE_UNIFORMS);
+    for (var i = 0; i &lt; numUniforms; ++i) {
+        var uniformInfo = gl.getActiveUniform(prg, i);
+        var loc = gl.getUniformLocation(prg, uniformInfo.name);
+        setProperty(prg.uniforms, uniformInfo.name, loc);
+    }
+
+    prg.attributes = {};
+
+    var numAttributes = gl.getProgramParameter(prg, gl.ACTIVE_ATTRIBUTES);
+    for (var i = 0; i &lt; numAttributes; ++i) {
+        var attributeInfo = gl.getActiveAttrib(prg, i);
+        var loc = gl.getAttribLocation(prg, attributeInfo.name);
+        setProperty(prg.attributes, attributeInfo.name, loc);
+    }
+
+    return prg;
+}
+
+function getShaderAjax(url) {
+    return $.get(url);
+}
+
+function createShaderFromSource(gl, type, str) {
+    var shader = gl.createShader(type);
+
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(shader));
+        return null;
+    }
+    return shader;
+}
+
+function initProgram(gl, vertexShaderUrl, fragmentShaderUrl, callback) {
+    var fgShader, vxShader = null;
+
+    $.when(
+        getShaderAjax(fragmentShaderUrl).success(function (fg) {
+            fgShader = createShaderFromSource(gl, gl.FRAGMENT_SHADER, fg);
+        }),
+        getShaderAjax(vertexShaderUrl).success(function (vs) {
+            vxShader = createShaderFromSource(gl, gl.VERTEX_SHADER, vs);
+        })
+    ).then(function () { callback(vxShader, fgShader); });
+}
+
+/**
+ * initWebGL
+ * @param canvas
+ * @returns WebGl Context
+ */
+function initWebGL() {
+    var gl = null;
+
+    if (Detector.webgl) {
+        var canvas = document.createElement('canvas');
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    } else {
+        Detector.addGetWebGLMessage();
+    }
+
+    return gl;
+}
+
+function centerCanvas(canvas) {
+    var windowHeight = window.innerHeight;
+    var bodyTop = (windowHeight - canvas.offsetHeight) / 2;
+    $('body').css('margin-top', bodyTop)
+}
+
+function resizeCanvas(gl) {
+    if (!gl) return;
+
+    var width = gl.canvas.clientWidth;
+    var height = gl.canvas.clientHeight;
+    if (gl.canvas.width != width ||
+        gl.canvas.height != height) {
+        // Change the size of the canvas to match the size it's being displayed
+        gl.canvas.width = width;
+        gl.canvas.height = height;
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="CGFapplication.html">CGFapplication</a></li><li><a href="CGFcamera.html">CGFcamera</a></li><li><a href="CGFinterface.html">CGFinterface</a></li><li><a href="CGFobject.html">CGFobject</a></li><li><a href="CGFscene.html">CGFscene</a></li><li><a href="CGFshader.html">CGFshader</a></li><li><a href="MyTable.html">MyTable</a></li><li><a href="Plane.html">Plane</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CGFcameraAxis">CGFcameraAxis</a></li><li><a href="global.html#compile_program">compile_program</a></li><li><a href="global.html#getStringFromUrl">getStringFromUrl</a></li><li><a href="global.html#initWebGL">initWebGL</a></li><li><a href="global.html#setProperty">setProperty</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a> on Wed Dec 17 2014 18:14:32 GMT+0000 (GMT Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

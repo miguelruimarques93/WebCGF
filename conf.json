@@ -1,0 +1,35 @@
+{
+  "tags": {
+    "allowUnknownTags": true
+  },
+  "source": {
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "default": {
+      "outputSourceFiles": true
+    },
+    "systemName"            : "CGFlib",
+    "footer"                : "",
+    "copyright"             :  "",
+    "navType"               : "vertical",
+    "theme"                 : "cerulean",
+    "linenums"              : "true",
+    "collapseSymbols"       : "true",
+    "inverseNav"            : "false",
+    "outputSourceFiles"     : "true" ,
+    "outputSourcePath"      : "false",
+    "dateFormat"            : "D-M-YYYY",
+    "highlightTutorialCode" : "true",
+    "syntaxTheme"           : "default"
+  },
+  "opts": {
+    "destination": "./docs/",
+    "recurse": true,
+    "template": "./node_modules/ink-docstrap/template"
+  }
+}

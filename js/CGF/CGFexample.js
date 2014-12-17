@@ -1,9 +1,17 @@
-var UnitCube = Class.create({
-    initialize: function (gl) {
-        this.gl = gl;
-        this.initBuffers();
-    },
+function UnitCube(gl) {
+    CGFobject.call(this, gl);
+    this.initBuffers();
+    this.wireframe = false;
+}
 
+UnitCube.prototype = Object.create(CGFobject.prototype);
+UnitCube.prototype.constructor = UnitCube;
+
+UnitCube.prototype = {
+
+    /**
+     * @private
+     */
     initBuffers: function () {
         var gl = this.gl;
 
@@ -107,6 +115,11 @@ var UnitCube = Class.create({
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     },
 
+    /**
+     *
+     * @param shader {CGFshader}
+     * @param mvMatrix {mat4}
+     */
     display: function (shader, mvMatrix) {
         var gl = this.gl;
 
@@ -129,172 +142,195 @@ var UnitCube = Class.create({
         gl.vertexAttribPointer(shader.attributes.aVertexNormal, 3, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.unitCubeIndicesBuffer);
-        gl.drawElements(gl.TRIANGLES, this.unitCubeIndicesBuffer.numValues, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(this.wireframe ? gl.LINES : gl.TRIANGLES, this.unitCubeIndicesBuffer.numValues, gl.UNSIGNED_SHORT, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
-});
+};
 
-var MyTable = Class.create({
-    initialize: function (gl) {
-        this.gl = gl;
-        this.unitCube = new UnitCube(gl);
-    },
+/**
+ *
+ * @param gl {WebGLRenderingContext}
+ * @constructor
+ */
+function MyTable(gl) {
+    CGFobject.call(this, gl);
+    this.unitCube = new UnitCube(gl);
+}
 
-    display: function (shader, mvMatrix) {
-        mat4.translate(mvMatrix, mvMatrix, vec3.fromValues(4, 0, 3));
+MyTable.prototype = Object.create(CGFobject.prototype);
+MyTable.prototype.constructor = MyTable;
 
-        var floorModelViewMatrix = mat4.create();
+/**
+ *
+ * @param shader {CGFshader}
+ * @param mvMatrix {mat4}
+ */
+MyTable.prototype.display = function (shader, pMvMatrix) {
+    var mvMatrix = mat4.translate(mat4.create(), pMvMatrix, vec3.fromValues(4, 0, 3));
 
-        mat4.translate(floorModelViewMatrix, mvMatrix, vec3.fromValues(0, 0.05, 0));
-        mat4.scale(floorModelViewMatrix, floorModelViewMatrix, vec3.fromValues(8, 0.1, 6));
+    var floorModelViewMatrix = mat4.create();
 
-        this.unitCube.display(shader, floorModelViewMatrix);
+    mat4.translate(floorModelViewMatrix, mvMatrix, vec3.fromValues(0, 0.05, 0));
+    mat4.scale(floorModelViewMatrix, floorModelViewMatrix, vec3.fromValues(8, 0.1, 6));
 
-        var TopModelViewMatrix = mat4.create();
+    this.unitCube.display(shader, floorModelViewMatrix);
 
-        mat4.translate(TopModelViewMatrix, mvMatrix, vec3.fromValues(0, 3.7, 0));
-        mat4.scale(TopModelViewMatrix, TopModelViewMatrix, vec3.fromValues(5, 0.3, 3));
+    var TopModelViewMatrix = mat4.create();
 
-        this.unitCube.display(shader, TopModelViewMatrix);
+    mat4.translate(TopModelViewMatrix, mvMatrix, vec3.fromValues(0, 3.7, 0));
+    mat4.scale(TopModelViewMatrix, TopModelViewMatrix, vec3.fromValues(5, 0.3, 3));
 
-        var legsModelViewMatrix = mat4.translate(mat4.create(), mvMatrix, vec3.fromValues(0, 1.8, 0));;
+    this.unitCube.display(shader, TopModelViewMatrix);
 
-        var legs = [
-            vec3.fromValues( 2.2, 0,  1.2),
-            vec3.fromValues( 2.2, 0, -1.2),
-            vec3.fromValues(-2.2, 0,  1.2),
-            vec3.fromValues(-2.2, 0, -1.2)
-        ];
+    var legsModelViewMatrix = mat4.translate(mat4.create(), mvMatrix, vec3.fromValues(0, 1.8, 0));
 
-        for (var i = 0; i < legs.length; ++i) {
-            var thisLegModelViewMatrix = mat4.copy(mat4.create(), legsModelViewMatrix);
+    var legs = [
+        vec3.fromValues(2.2, 0, 1.2),
+        vec3.fromValues(2.2, 0, -1.2),
+        vec3.fromValues(-2.2, 0, 1.2),
+        vec3.fromValues(-2.2, 0, -1.2)
+    ];
 
-            mat4.translate(thisLegModelViewMatrix, thisLegModelViewMatrix, legs[i]);
-            mat4.scale(thisLegModelViewMatrix, thisLegModelViewMatrix, vec3.fromValues(0.3, 3.5, 0.3));
+    for (var i = 0; i < legs.length; ++i) {
+        var thisLegModelViewMatrix = mat4.copy(mat4.create(), legsModelViewMatrix);
 
-            this.unitCube.display(shader, thisLegModelViewMatrix);
-        }
+        mat4.translate(thisLegModelViewMatrix, thisLegModelViewMatrix, legs[i]);
+        mat4.scale(thisLegModelViewMatrix, thisLegModelViewMatrix, vec3.fromValues(0.3, 3.5, 0.3));
 
+        this.unitCube.display(shader, thisLegModelViewMatrix);
     }
-});
+};
 
-var MyScene = Class.create(CGFscene, {
-    init: function (application) {
-        var gl = application.gl;
-        this.gl = gl;
-        this.shader = new CGFshader(
-            gl,
-            '/resources/lighting/goraud shading/multiple_light-phong-vertex.glsl',
-            '/resources/lighting/goraud shading/fragment.glsl'
-        );
+function MyScene() {
+    CGFscene.call(this);
+}
 
-        this.initLights();
+MyScene.prototype = Object.create(CGFscene.prototype);
+MyScene.prototype.constructor = MyScene;
 
-        this.initCameras();
+MyScene.prototype.init = function (application) {
+    CGFscene.prototype.init.call(this, application);
+    this.shader = new CGFshader(
+        this.gl,
+        '/resources/lighting/goraud shading/multiple_light-phong-vertex.glsl',
+        '/resources/lighting/goraud shading/fragment.glsl'
+    );
 
-        this.table = new MyTable(gl);
+    this.initLights();
 
-        gl.clearColor(0.3, 0.3, 0.3, 1.0);
-        gl.clearDepth(100.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-    },
+    this.initCameras();
 
-    initLights: function () {
-        var gl = this.gl;
+    this.table = new MyTable(this.gl);
 
-        this.shader.bind();
+    this.wall = new Plane(this.gl, 5);
 
-        gl.uniform1i(this.shader.uniforms.uLight[0].enabled, true);
-        gl.uniform4fv(this.shader.uniforms.uLight[0].position, [0.2, -5.0, 0.2, 1]);
-        gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.3, 0.3, 0.3, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLight[0].diffuse, [0.5, 0.5, 0.5, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLight[0].specular, [0.5, 0.5, 0.5, 1.0]);
-        gl.uniform3fv(this.shader.uniforms.uLight[0].spot_direction, [0, 0, -1]);
-        gl.uniform1f(this.shader.uniforms.uLight[0].spot_exponent, 0);
-        gl.uniform1f(this.shader.uniforms.uLight[0].spot_cutoff, 180);
-        gl.uniform1f(this.shader.uniforms.uLight[0].constant_attenuation, 1.0);
-        gl.uniform1f(this.shader.uniforms.uLight[0].linear_attenuation, 0);
-        gl.uniform1f(this.shader.uniforms.uLight[0].quadratic_attenuation, 0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearDepth(100.0);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LEQUAL);
+};
 
-        gl.uniform1i(this.shader.uniforms.uLight[1].enabled, true);
-        gl.uniform4fv(this.shader.uniforms.uLight[1].position, [4, 10, 3, 1]);
-        gl.uniform4fv(this.shader.uniforms.uLight[1].ambient, [0.0, 0.0, 0.0, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLight[1].diffuse, [0.8, 0.0, 0.0, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLight[1].specular, [0.8, 0.0, 0.0, 1.0]);
-        gl.uniform3fv(this.shader.uniforms.uLight[1].spot_direction, [0, -1, 0]);
-        gl.uniform1f(this.shader.uniforms.uLight[1].spot_exponent, 0);
-        gl.uniform1f(this.shader.uniforms.uLight[1].spot_cutoff, 180);
-        gl.uniform1f(this.shader.uniforms.uLight[1].constant_attenuation, 1.0);
-        gl.uniform1f(this.shader.uniforms.uLight[1].linear_attenuation, 0.0);
-        gl.uniform1f(this.shader.uniforms.uLight[1].quadratic_attenuation, 0);
+// MyScene.prototype.update = function () { CGFscene.prototype.update.call(this); }
 
-        for (var i = 2; i < 4; ++i) {
-            gl.uniform1i(this.shader.uniforms.uLight[i].enabled, false);
-        }
+MyScene.prototype.initLights = function () {
+    var gl = this.gl;
 
-        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
-        gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
+    this.shader.bind();
 
-        /*
+    gl.uniform1i(this.shader.uniforms.uLight[0].enabled, true);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].position, [0.2, -5.0, 0.2, 1]);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].diffuse, [0.5, 0.5, 0.5, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].specular, [0.5, 0.5, 0.5, 1.0]);
+    gl.uniform3fv(this.shader.uniforms.uLight[0].spot_direction, [0, 0, -1]);
+    gl.uniform1f(this.shader.uniforms.uLight[0].spot_exponent, 0);
+    gl.uniform1f(this.shader.uniforms.uLight[0].spot_cutoff, 180);
+    gl.uniform1f(this.shader.uniforms.uLight[0].constant_attenuation, 1.0);
+    gl.uniform1f(this.shader.uniforms.uLight[0].linear_attenuation, 0);
+    gl.uniform1f(this.shader.uniforms.uLight[0].quadratic_attenuation, 0);
 
-        gl.uniform3fv(this.shader.uniforms.uLightDirection, [-1, -1, -1]);
-        gl.uniform4fv(this.shader.uniforms.uLightAmbient, [0.3, 0.3, 0.3, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLightDiffuse, [0.5, 0.5, 0.5, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uLightSpecular, [0.5, 0.5, 0.5, 1.0]);
+    gl.uniform1i(this.shader.uniforms.uLight[1].enabled, true);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].position, [3, 4, 3, 1]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].ambient, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].diffuse, [0.2, 0.2, 0.2, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].specular, [0.8, 0.0, 0.0, 1.0]);
+    gl.uniform3fv(this.shader.uniforms.uLight[1].spot_direction, [-1, 0, 0]);
+    gl.uniform1f(this.shader.uniforms.uLight[1].spot_exponent, 0);
+    gl.uniform1f(this.shader.uniforms.uLight[1].spot_cutoff, 180);
+    gl.uniform1f(this.shader.uniforms.uLight[1].constant_attenuation, 0.1);
+    gl.uniform1f(this.shader.uniforms.uLight[1].linear_attenuation, 0.0);
+    gl.uniform1f(this.shader.uniforms.uLight[1].quadratic_attenuation, 0);
 
-        gl.uniform4fv(this.shader.uniforms.uMaterialAmbient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uMaterialDiffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-        gl.uniform4fv(this.shader.uniforms.uMaterialSpecular, [0.0, 0.0, 0.0, 1.0]);
-        gl.uniform1f(this.shader.uniforms.uShininess, 10.0);
-
-        */
-
-        this.shader.unbind();
-    },
-
-    initCameras: function () {
-        this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(25, 15, 25), vec3.fromValues(4, 0, 3));
-    },
-
-    display: function (gl) {
-        this.gl = gl;
-
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        var pMatrix = this.camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
-
-        var mvMatrix = this.camera.getViewMatrix();
-
-        this.shader.bind();
-
-        gl.uniformMatrix4fv(this.shader.uniforms.uPMatrix, false, pMatrix);
-
-        this.table.display(this.shader, mvMatrix);
-
-        this.shader.unbind();
-
+    for (var i = 2; i < 4; ++i) {
+        gl.uniform1i(this.shader.uniforms.uLight[i].enabled, false);
     }
-});
 
-var body = $(document.body);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
 
-var app = new CGFapplication(body);
-var scene = new MyScene();
+    this.shader.unbind();
+};
 
-var iface = new CGFinterface();
+MyScene.prototype.initCameras = function () {
+    this.camera = new CGFcamera(0.4, 0.1, 500, vec3.fromValues(25, 15, 25), vec3.fromValues(4, 0, 3));
+};
+
+MyScene.prototype.display = function (gl) {
+    // this.gl = gl;
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    var pMatrix = this.camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
+
+    var mvMatrix = this.camera.getViewMatrix();
+
+    this.shader.bind();
+
+    gl.uniformMatrix4fv(this.shader.uniforms.uPMatrix, false, pMatrix);
+
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
+
+    this.table.display(this.shader, mvMatrix);
+
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [100 / 256, 100 / 256, 100 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [100 / 256, 100 / 256, 100 / 256, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.5, 0.5, 0.5, 1.0]);
+    gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 100.0);
+
+
+    var mvMatrix1 = mat4.clone(mvMatrix);
+
+    mat4.translate(mvMatrix1, mvMatrix1, [0, 3, 3]);
+    mat4.rotate(mvMatrix1, mvMatrix1, -Math.PI / 2, [0, 0, 1]);
+    mat4.scale(mvMatrix1, mvMatrix1, [6, 1, 6]);
+    this.wall.display(this.shader, mvMatrix1);
+
+    mat4.translate(mvMatrix, mvMatrix, [4, 3, 0]);
+    mat4.rotate(mvMatrix, mvMatrix, Math.PI / 2, [1, 0, 0]);
+    mat4.scale(mvMatrix, mvMatrix, [8, 1, 6]);
+    this.wall.display(this.shader, mvMatrix);
+
+    this.shader.unbind();
+};
+
+var app = new CGFapplication(document.body);
+var myScene = new MyScene();
+var cgfInterface = new CGFinterface();
 
 app.init();
 
-app.setScene(scene);
-app.setInterface(iface);
+app.setScene(myScene);
+app.setInterface(cgfInterface);
 
-iface.setActiveCamera(scene.camera);
+cgfInterface.setActiveCamera(myScene.camera);
 
 app.run();
 
