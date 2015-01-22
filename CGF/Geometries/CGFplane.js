@@ -100,4 +100,7 @@ CGFplane.prototype.display = function (shader, mvMatrix) {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+    gl.disableVertexAttribArray(shader.attributes.aVertexPosition);
+    gl.disableVertexAttribArray(shader.attributes.aVertexNormal);
 };
