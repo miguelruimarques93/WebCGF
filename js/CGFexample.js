@@ -224,7 +224,8 @@ MyScene.prototype.init = function (application) {
 
     this.table = new MyTable(this.gl);
 
-    this.wall = new CGFplane(this.gl, 5);
+    this.wall = new CGFplane(this.gl,100);
+    this.wall.wireframe = false;
 
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clearDepth(100.0);
@@ -240,27 +241,27 @@ MyScene.prototype.initLights = function () {
     this.shader.bind();
 
     gl.uniform1i(this.shader.uniforms.uLight[0].enabled, true);
-    gl.uniform4fv(this.shader.uniforms.uLight[0].position, [0.2, -5.0, 0.2, 1]);
-    gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].position, [3, 10, 3, 1]);
+    gl.uniform4fv(this.shader.uniforms.uLight[0].ambient, [0.1, 0.1, 0.1, 1.0]);
     gl.uniform4fv(this.shader.uniforms.uLight[0].diffuse, [0.5, 0.5, 0.5, 1.0]);
     gl.uniform4fv(this.shader.uniforms.uLight[0].specular, [0.5, 0.5, 0.5, 1.0]);
-    gl.uniform3fv(this.shader.uniforms.uLight[0].spot_direction, [0, 0, -1]);
-    gl.uniform1f(this.shader.uniforms.uLight[0].spot_exponent, 0);
-    gl.uniform1f(this.shader.uniforms.uLight[0].spot_cutoff, 180);
+    gl.uniform3fv(this.shader.uniforms.uLight[0].spot_direction, [0, -1, 0]);
+    gl.uniform1f(this.shader.uniforms.uLight[0].spot_exponent, 10);
+    gl.uniform1f(this.shader.uniforms.uLight[0].spot_cutoff, 20);
     gl.uniform1f(this.shader.uniforms.uLight[0].constant_attenuation, 1.0);
     gl.uniform1f(this.shader.uniforms.uLight[0].linear_attenuation, 0);
     gl.uniform1f(this.shader.uniforms.uLight[0].quadratic_attenuation, 0);
 
     gl.uniform1i(this.shader.uniforms.uLight[1].enabled, true);
-    gl.uniform4fv(this.shader.uniforms.uLight[1].position, [3, 4, 3, 1]);
-    gl.uniform4fv(this.shader.uniforms.uLight[1].ambient, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].position, [1, 1, 1, 0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].ambient, [0.1, 0.1, 0.1, 1.0]);
     gl.uniform4fv(this.shader.uniforms.uLight[1].diffuse, [0.2, 0.2, 0.2, 1.0]);
-    gl.uniform4fv(this.shader.uniforms.uLight[1].specular, [0.8, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uLight[1].specular, [0.0, 0.0, 0.0, 1.0]);
     gl.uniform3fv(this.shader.uniforms.uLight[1].spot_direction, [-1, 0, 0]);
-    gl.uniform1f(this.shader.uniforms.uLight[1].spot_exponent, 0);
-    gl.uniform1f(this.shader.uniforms.uLight[1].spot_cutoff, 180);
-    gl.uniform1f(this.shader.uniforms.uLight[1].constant_attenuation, 0.1);
-    gl.uniform1f(this.shader.uniforms.uLight[1].linear_attenuation, 0.0);
+    gl.uniform1f(this.shader.uniforms.uLight[1].spot_exponent, 1);
+    gl.uniform1f(this.shader.uniforms.uLight[1].spot_cutoff, 89);
+    gl.uniform1f(this.shader.uniforms.uLight[1].constant_attenuation, 1);
+    gl.uniform1f(this.shader.uniforms.uLight[1].linear_attenuation, 0);
     gl.uniform1f(this.shader.uniforms.uLight[1].quadratic_attenuation, 0);
 
     for (var i = 2; i < 4; ++i) {
@@ -269,7 +270,7 @@ MyScene.prototype.initLights = function () {
 
     gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
     gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [46 / 256, 99 / 256, 191 / 256, 1.0]);
     gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
 
     this.shader.unbind();
@@ -286,8 +287,9 @@ MyScene.prototype.display = function (gl) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var pMatrix = this.camera.getProjectionMatrix(gl.canvas.width, gl.canvas.height);
+    mat4.mul(pMatrix, pMatrix, this.camera.getViewMatrix());
 
-    var mvMatrix = this.camera.getViewMatrix();
+    var mvMatrix = mat4.create();
 
     this.shader.bind();
 
@@ -295,7 +297,7 @@ MyScene.prototype.display = function (gl) {
 
     gl.uniform4fv(this.shader.uniforms.uFrontMaterial.ambient, [46 / 256, 99 / 256, 191 / 256, 1.0]);
     gl.uniform4fv(this.shader.uniforms.uFrontMaterial.diffuse, [46 / 256, 99 / 256, 191 / 256, 1.0]);
-    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [0.0, 0.0, 0.0, 1.0]);
+    gl.uniform4fv(this.shader.uniforms.uFrontMaterial.specular, [46 / 256, 99 / 256, 191 / 256, 1.0]);
     gl.uniform1f(this.shader.uniforms.uFrontMaterial.shininess, 10.0);
 
     this.table.display(this.shader, mvMatrix);
@@ -313,10 +315,15 @@ MyScene.prototype.display = function (gl) {
     mat4.scale(mvMatrix1, mvMatrix1, [6, 1, 6]);
     this.wall.display(this.shader, mvMatrix1);
 
-    mat4.translate(mvMatrix, mvMatrix, [4, 3, 0]);
-    mat4.rotate(mvMatrix, mvMatrix, Math.PI / 2, [1, 0, 0]);
-    mat4.scale(mvMatrix, mvMatrix, [8, 1, 6]);
-    this.wall.display(this.shader, mvMatrix);
+    mat4.translate(mvMatrix1, mvMatrix, [4, 3, 0]);
+    mat4.rotate(mvMatrix1, mvMatrix1, Math.PI / 2, [1, 0, 0]);
+    mat4.scale(mvMatrix1, mvMatrix1, [8, 1, 6]);
+    this.wall.display(this.shader, mvMatrix1);
+
+    mat4.translate(mvMatrix1, mvMatrix, [4, 0, 3]);
+    // mat4.rotate(mvMatrix1, mvMatrix1, Math.PI / 2, [1, 0, 0]);
+    mat4.scale(mvMatrix1, mvMatrix1, [8,1,6]);
+    this.wall.display(this.shader, mvMatrix1);
 
     this.shader.unbind();
 };

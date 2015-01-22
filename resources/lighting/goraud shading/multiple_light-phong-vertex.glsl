@@ -42,71 +42,61 @@ uniform materialProperties uBackMaterial;
 
 varying vec4 vFinalColor;
 
-vec4 calcDirectionLight(int i, vec3 E, vec3 L, vec3 N) {
-    float lambertTerm = dot(N, -L);
-
-    vec4 Ia = uLight[i].ambient * uFrontMaterial.ambient;
-
-    vec4 Id = vec4(0.0, 0.0, 0.0, 0.0);
-
-    vec4 Is = vec4(0.0, 0.0, 0.0, 0.0);
-
-    if (lambertTerm > 0.0) {
-        Id = uLight[i].diffuse * uFrontMaterial.diffuse * lambertTerm;
-
-        vec3 R = reflect(L, N);
-        float specular = pow( max( dot(R, E), 0.0 ), uFrontMaterial.shininess);
-
-        Is = uLight[i].specular * uFrontMaterial.specular * specular;
-    }
-    return Ia + Id + Is;
-}
-
-vec4 calcPointLight(int i, vec3 E, vec3 N) {
-    vec3 direction = (uMVMatrix * vec4(aVertexPosition, 1.0)).xyz - uLight[i].position.xyz;
-    float dist = length(direction);
-    direction = normalize(direction);
-
-    vec4 color = calcDirectionLight(i, E, direction, N);
-    float att = 1.0 / (uLight[i].constant_attenuation + uLight[i].linear_attenuation * dist + uLight[i].quadratic_attenuation * dist * dist);
-    return color * att;
-}
-
-vec4 calcSpotLight(int i, vec3 E, vec3 N)
-{
-    vec3 direction = normalize((uMVMatrix * vec4(aVertexPosition, 1.0)).xyz - uLight[i].position.xyz);
-    float spot_factor = dot(direction, uLight[i].spot_direction);
-
-    if (spot_factor > uLight[i].spot_cutoff) {
-        vec4 color = calcPointLight(i, E, N);
-        return color * (1.0 - (1.0 - spot_factor) * 1.0/(1.0 - uLight[i].spot_cutoff));
-    }
-    else {
-        return vec4(0,0,0,0);
-    }
-}
-
 vec4 lighting(vec4 vertex, vec3 E, vec3 N) {
 
     vec4 result = vec4(0.0, 0.0, 0.0, 0.0);
 
     for (int i = 0; i < NUMBER_OF_LIGHTS; i++) {
         if (uLight[i].enabled) {
-            if (uLight[i].position.w == 0.0) {
-                // Directional Light
-                result += calcDirectionLight(i, E, normalize(uLight[i].position.xyz), N);
-            } else if (uLight[i].spot_cutoff == 180.0) {
-                // Point Light
-                result += calcPointLight(i, E, N);
+
+            float att = 1.0;
+            float spot_effect = 1.0;
+            vec3 L = vec3(0.0);
+
+            if (uLight[i].position.w == 1.0) {
+                L = (uLight[i].position - vertex).xyz;
+                float dist = length(L);
+                L = normalize(L);
+
+                if (uLight[i].spot_cutoff != 180.0) {
+                    vec3 sd = normalize(vec3(uLight[i].spot_direction));
+                    float cos_cur_angle = dot(sd, -L);
+                    float cos_inner_cone_angle = cos(radians(clamp(uLight[i].spot_cutoff, 0.0, 89.0)));
+
+                    spot_effect = pow(clamp(cos_cur_angle/ cos_inner_cone_angle, 0.0, 1.0), clamp(uLight[i].spot_exponent, 0.0, 128.0));
+                }
+
+                att = 1.0 / (uLight[i].constant_attenuation + uLight[i].linear_attenuation * dist + uLight[i].quadratic_attenuation * dist * dist);
+
             } else {
-                result += calcSpotLight(i, E, N);
+                L = normalize(uLight[i].position.xyz);
             }
+
+            float lambertTerm = max(dot(N, L), 0.0);
+
+            vec4 Ia = uLight[i].ambient * uFrontMaterial.ambient;
+
+            vec4 Id = uLight[i].diffuse * uFrontMaterial.diffuse * lambertTerm;
+
+            vec4 Is = vec4(0.0, 0.0, 0.0, 0.0);
+
+            Id = uLight[i].diffuse * uFrontMaterial.diffuse * lambertTerm;
+
+            if (lambertTerm > 0.0) {
+                vec3 R = reflect(L, N);
+                float specular = pow( max( dot(R, E), 0.0 ), uFrontMaterial.shininess);
+
+                Is = uLight[i].specular * uFrontMaterial.specular * specular;
+            }
+
+            if (uLight[i].position.w == 1.0) 
+               result += att * max(spot_effect * (Id + Is), Ia);
+            else
+               result += att * spot_effect * (Ia + Id + Is);
         }
     }
 
-    if (result.r > 1.0) result.r = 1.0;
-    if (result.g > 1.0) result.g = 1.0;
-    if (result.b > 1.0) result.b = 1.0;
+    result = clamp(result, vec4(0.0), vec4(1.0));
 
     result.a = 1.0;
     return result;
